@@ -21,16 +21,19 @@ app.use(express.json({ limit: "50mb" }));  // Increase JSON payload limit
 app.use(express.urlencoded({ extended: true })); // ✅ Parses URL-encoded data
 app.use(cookieParser())
 // Routes
-app.use('/auth', AuthRouter);
-app.use('/user',ProfileRouter);
-app.use('/messages',MessageRouter);
-if(process.env.NODE_ENV==="production")
-     {
-          app.use(express.static(path.join(__dirname,'../frontend/dist')));
-          app.get('*',(req,res)=>{
-               res.sendFile(path.join(__dirname,"../frontend","dist","index.html"));
-          })
-     }
+// Mount API routes with "/api" prefix
+app.use('/api/auth', AuthRouter);
+app.use('/api/user', ProfileRouter);
+app.use('/api/messages', MessageRouter);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  // Make sure the catch-all comes after your API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+}
+
 server.listen(PORT, () =>{
      console.log(`Server is running on port ${PORT}.`)
      connectDB();
