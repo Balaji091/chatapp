@@ -6,23 +6,21 @@ import toast from "react-hot-toast";
 const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
-  const [imageFile, setImageFile] = useState(null); // Store actual file
+  const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
-  const { sendMessage } = useChatStore();
+  const { sendMessage,isSendingMessage } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return; // Prevent error if no file is selected
-
     if (!file) {
-      toast.error("Please select an image file");
+      toast.error("No file selected!");
       return;
     }
-
+    console.log("Selected file:", file);
+    setImageFile(file); // Set file immediately
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
-      setImageFile(file); // Store actual file for sending
     };
     reader.readAsDataURL(file);
   };
@@ -35,22 +33,21 @@ const MessageInput = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim() && !imageFile) return; // Ensure message or image is present
+    // Ensure message or image is present
+    if (!text.trim() && !imageFile) {
+      toast.error("Cannot send an empty message!");
+      return;
+    }
 
     try {
-      await sendMessage({
-        text: text.trim(),
-        image: imageFile, // Send actual File object
-      });
-
-      // Clear form
+      // Send a plain object; the store converts it to FormData.
+      await sendMessage({ text: text.trim(), image: imageFile });
+      // Clear form fields
       setText("");
-      setImagePreview(null);
-      setImageFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      removeImage();
     } catch (error) {
       console.error("Failed to send message:", error);
-      toast.error("Failed to send message",error);
+      toast.error("Failed to send message");
     }
   };
 
@@ -91,13 +88,12 @@ const MessageInput = () => {
             className="hidden"
             ref={fileInputRef}
             onChange={handleImageChange}
+            disabled={isSendingMessage}
+            
           />
-
           <button
             type="button"
-            className={`hidden sm:flex btn btn-circle ${
-              imagePreview ? "text-emerald-500" : "text-zinc-400"
-            }`}
+            className="hidden sm:flex btn btn-circle text-zinc-400"
             onClick={() => fileInputRef.current?.click()}
           >
             <Image size={20} />

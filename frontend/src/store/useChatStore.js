@@ -4,13 +4,16 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useAuthStore } from "./useAuthStore.js";
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/" : "/api";
+
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/" : "/";
+
 export const useChatStore = create((set, get) => ({
   messages: [],
   users: [],
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  isSendingMessage:false,
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -37,11 +40,13 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
+    set({ isSendingMessage: true });
     const { selectedUser, messages } = get();
     const formData = new FormData();
     formData.append("text", messageData.text);
     if (messageData.image) {
-      formData.append("file", messageData.image);
+      // Fixed: Using "image" as the key to match the backend expectation.
+      formData.append("image", messageData.image);
     }
 
     try {
@@ -49,6 +54,8 @@ export const useChatStore = create((set, get) => ({
       set({ messages: [...messages, res.data.data] });
     } catch (error) {
       toast.error(error.response.data.data.message);
+    }finally{
+      set({isSendingMessage:false})
     }
   },
 
