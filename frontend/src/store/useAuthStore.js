@@ -3,10 +3,19 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL =
+// API base URL is used only for axios calls.
+const API_BASE_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000/api"
     : import.meta.env.VITE_API_BASE_URL || "/api";
+
+// For socket connections, we don't include the "/api" prefix.
+// You can define a separate environment variable (e.g., VITE_SOCKET_URL)
+// or default to the current origin.
+const SOCKET_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000"
+    : import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -50,7 +59,6 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
-
       get().connectSocket();
     } catch (error) {
       toast.error(error.response.data.message);
@@ -88,7 +96,8 @@ export const useAuthStore = create((set, get) => ({
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
-    const socket = io(BASE_URL, {
+    // Use SOCKET_URL for socket connection
+    const socket = io(SOCKET_URL, {
       query: {
         userId: authUser._id,
       },
@@ -101,6 +110,7 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
   },
+  
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
