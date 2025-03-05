@@ -1,0 +1,21 @@
+{
+  "name": "chatapp",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Balaji091/chatapp#readme",
+  "bugs": {
+    "url": "https://github.com/Balaji091/chatapp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Balaji091/chatapp.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build":"npm install --prefix server && npm install --prefix frontend && npm run build --prefix frontend ",
+    "start":"npm run start --prefix server"
+  }
+}
