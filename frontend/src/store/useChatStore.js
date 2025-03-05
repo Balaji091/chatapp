@@ -5,8 +5,8 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useAuthStore } from "./useAuthStore.js";
 
-const BASE_URL = import.meta.env.NODE_ENV=development
-=== "development" ? "http://localhost:5000/" : "/";
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/" : "/";
+
 
 export const useChatStore = create((set, get) => ({
   messages: [],
