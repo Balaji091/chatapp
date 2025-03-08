@@ -7,8 +7,9 @@ const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [isSending, setIsSending] = useState(false); // Local state to track sending status
   const fileInputRef = useRef(null);
-  const { sendMessage,isSendingMessage } = useChatStore();
+  const { sendMessage, isSendingMessage } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -39,6 +40,8 @@ const MessageInput = () => {
       return;
     }
 
+    setIsSending(true); // Disable the send button immediately
+
     try {
       // Send a plain object; the store converts it to FormData.
       await sendMessage({ text: text.trim(), image: imageFile });
@@ -48,6 +51,8 @@ const MessageInput = () => {
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error("Failed to send message");
+    } finally {
+      setIsSending(false); // Re-enable the send button after sending
     }
   };
 
@@ -88,13 +93,15 @@ const MessageInput = () => {
             className="hidden"
             ref={fileInputRef}
             onChange={handleImageChange}
-            disabled={isSendingMessage}
-            
+            disabled={isSendingMessage || isSending} // Disable file input while sending
           />
           <button
             type="button"
-            className="hidden sm:flex btn btn-circle text-zinc-400"
+            className={`btn btn-circle text-zinc-400 ${
+              isSendingMessage || isSending ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             onClick={() => fileInputRef.current?.click()}
+            disabled={isSendingMessage || isSending} // Disable image upload button while sending
           >
             <Image size={20} />
           </button>
@@ -102,7 +109,7 @@ const MessageInput = () => {
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          disabled={(!text.trim() && !imagePreview) || isSending} // Disable send button while sending
         >
           <Send size={22} />
         </button>
